@@ -1,0 +1,9 @@
+#!/bin/sh
+uci -q batch <<-EOF >/dev/null
+    delete ucitrack.@dnsmasq-ipset[-1]
+    add ucitrack dnsmasq-ipset
+    set ucitrack.@dnsmasq-ipset[-1].init=dnsmasq-ipset
+    set ucitrack.@dnsmasq-ipset[-1].exec=/etc/init.d/dnsmasq restart
+    commit ucitrack
+EOF
+exit 0
