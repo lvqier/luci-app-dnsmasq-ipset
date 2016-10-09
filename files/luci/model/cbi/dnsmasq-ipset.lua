@@ -19,7 +19,7 @@ o = s:option(Flag, "dns_forward", translate("Forward DNS Lookups"))
 
 p = s:option(Value, "upstream_dns_server", translate("Upstream DNS Server"))
 p.placeholder = "Upstream DNS Server"
-p.placeholder = "127.0.0.1#5353"
+p.default = "127.0.0.1#5353"
 p.rmempty = false
 
 p:depends("dns_forward", "1")

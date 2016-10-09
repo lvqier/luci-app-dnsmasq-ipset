@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-dnsmasq-ipset
 PKG_VERSION:=0.0.1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=LICENSE
@@ -37,8 +37,8 @@ endef
 define Package/luci-app-dnsmasq-ipset/postinst
 #!/bin/sh
 if [ -z "$${IPKG_INSTROOT}" ]; then
-	if [ -f /etc/uci-defaults/luci-dnsmasq-ipset]; then
-		( . /etc/uci-defaults/luci-dnsmasq-ipset) && \
+	if [ -f /etc/uci-defaults/luci-dnsmasq-ipset ]; then
+		( . /etc/uci-defaults/luci-dnsmasq-ipset ) && \
 		rm -f /etc/uci-defaults/luci-dnsmasq-ipset
 	fi
 	rm -rf /tmp/luci-indexcache /tmp/luci-modulecache

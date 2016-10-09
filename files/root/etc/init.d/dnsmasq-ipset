@@ -3,24 +3,6 @@
 
 START=55
 
-
-uci_get_by_name() {
-	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
-	echo ${ret:=$3}
-}
-
-uci_get_by_type() {
-	local ret=$(uci get $NAME.@$1[0].$2 2>/dev/null)
-	echo ${ret:=$3}
-}
-
-uci_bool_by_name() {
-	case "$(uci_get_by_name $1 $2)" in
-		1|on|true|yes|enabled) return 0;;
-	esac
-	return 1
-}
-
 gen_config_file() {
     local section="${1}"
     config_get enabled "${section}" "enabled"
