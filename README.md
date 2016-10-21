@@ -7,6 +7,8 @@ OpenWrt LuCI for ipset feature of dnsmasq-full
 本软件包是 dnsmasq-full IPSet 的 LuCI 控制界面,
 方便用户实现根据域名路由。
 
+![屏幕截图](https://github.com/lvqier/luci-app-dnsmasq-ipset/raw/master/images/screenshot.png)
+
 
 编译
 ---
