@@ -10,6 +10,7 @@ gen_config_file() {
     then
         return
     fi
+    [ ! -d /tmp/dnsmasq.d ] && mkdir -p /tmp/dnsmasq.d
     config_get ipset_name "${section}" "ipset_name"
     config_file_name="/tmp/dnsmasq.d/${ipset_name}.conf"
     rm -f "${config_file_name}"
