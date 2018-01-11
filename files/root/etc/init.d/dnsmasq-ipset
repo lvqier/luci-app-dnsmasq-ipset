@@ -34,7 +34,6 @@ gen_config_files() {
     rm -rf /tmp/dnsmasq.d/ipset-*.conf
     config_load 'dnsmasq-ipset'
     config_foreach gen_config_file 'ipsets'
-    /etc/init.d/dnsmasq reload
 }
 
 start() {
