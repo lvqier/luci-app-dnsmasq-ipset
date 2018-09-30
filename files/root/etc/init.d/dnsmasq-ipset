@@ -12,7 +12,7 @@ gen_config_file() {
     fi
     [ ! -d /tmp/dnsmasq.d ] && mkdir -p /tmp/dnsmasq.d
     config_get ipset_name "${section}" "ipset_name"
-    config_file_name="/tmp/dnsmasq.d/inset-${ipset_name}.conf"
+    config_file_name="/tmp/dnsmasq.d/ipset-${ipset_name}.conf"
     rm -f "${config_file_name}"
     config_get_bool dns_forward "${section}" "dns_forward"
     if [ ${dns_forward} ]
@@ -42,4 +42,5 @@ start() {
 
 reload() {
     gen_config_files
+    /etc/init.d/dnsmasq restart
 }
