@@ -19,7 +19,7 @@ OpenWrt LuCI for ipset feature of dnsmasq-full
 tar xjf OpenWrt-SDK-ramips-for-linux-*.tar.bz2
 cd OpenWrt-SDK-ramips-*
 # Clone 项目
-git clone https://github.com/lvqier/luci-app-dnsmasq-ipset.git package/luci-app-dnsmasq-ipset
+git clone https://github.com/TienYow/luci-app-dnsmasq-ipset.git package/luci-app-dnsmasq-ipset
 # 选择要编译的包 LuCI -> 3. Applications
 make menuconfig
 # 开始编译
