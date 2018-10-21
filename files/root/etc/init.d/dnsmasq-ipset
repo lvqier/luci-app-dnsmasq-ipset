@@ -1,7 +1,7 @@
 #!/bin/sh /etc/rc.common
 # Author Qier LU <lvqier@gmail.com>
 
-START=55
+START=18
 
 gen_config_file() {
     local section="${1}"
@@ -25,7 +25,10 @@ gen_config_file() {
         then
             echo "server=/${domain}/${upstream_dns_server}" >> "${config_file_name}"
         fi
-        echo "ipset=/${domain}/${ipset_name}" >> "${config_file_name}"
+        if [ -z "`opkg list-installed | grep dnsmasq-full`" ]
+        then
+            echo "ipset=/${domain}/${ipset_name}" >> "${config_file_name}"
+        fi
     }
     config_list_foreach "${section}" "managed_domain" handle_domain
 }
