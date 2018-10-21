@@ -25,12 +25,12 @@ gen_config_file() {
         then
             echo "server=/${domain}/${upstream_dns_server}" >> "${config_file_name}"
         fi
-        if [ ! -e /var/lock/opkg.lock ]
-        then
-		    if [ -n "`opkg list-installed | grep dnsmasq-full`" ]
-		    then
-			    echo "ipset=/${domain}/${ipset_name}" >> "${config_file_name}"
-		    fi
+	if [ ! -e /var/lock/opkg.lock ]
+	then
+	    if [ -n "`opkg list-installed | grep dnsmasq-full`" ]
+	    then
+	        echo "ipset=/${domain}/${ipset_name}" >> "${config_file_name}"
+	    fi
         fi
     }
     config_list_foreach "${section}" "managed_domain" handle_domain
