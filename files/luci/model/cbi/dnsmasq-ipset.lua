@@ -27,4 +27,7 @@ p:depends("dns_forward", "1")
 o = s:option(DynamicList, "managed_domain", translate("Managed Domain List"))
 o.datatype = "host"
 
-return m
+-- force restart dnsmasq, according to  https://forum.openwrt.org/viewtopic.php?pid=141931#p141931
+dnsmasq_map = Map("dnsmasq", "")
+
+return m, dnsmasq_map
