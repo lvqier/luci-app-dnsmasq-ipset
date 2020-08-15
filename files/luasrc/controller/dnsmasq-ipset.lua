@@ -8,5 +8,5 @@ function index()
         return
     end
 
-    entry({"admin", "services", "dnsmasq-ipset"}, cbi("dnsmasq-ipset"), _("DNSmasq IP-Set"), 60).dependent = true
+    entry({"admin", "services", "dnsmasq-ipset"}, view("dnsmasq-ipset"), _("DNSmasq IP-Set"), 60).dependent = true
 end
