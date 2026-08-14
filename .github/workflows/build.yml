@@ -1,0 +1,76 @@
+name: Build package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "OpenWrt SDK version (use 'latest' for the latest stable release)"
+        required: false
+        default: "latest"
+      target:
+        description: "OpenWrt target (e.g. mediatek)"
+        required: false
+        default: "mediatek"
+      subtarget:
+        description: "OpenWrt subtarget (e.g. filogic)"
+        required: false
+        default: "filogic"
+
+jobs:
+  build:
+    name: Build (${{ github.event.inputs.target || 'mediatek' }}/${{ github.event.inputs.subtarget || 'filogic' }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Determine OpenWrt SDK version
+        id: version
+        env:
+          REQUESTED: ${{ github.event.inputs.version || 'latest' }}
+        run: |
+          set -eu
+          if [ "${REQUESTED}" != "latest" ]; then
+            echo "version=${REQUESTED}" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          # Resolve the latest stable OpenWrt release, skipping RCs / pre-releases.
+          latest="$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            /repos/openwrt/openwrt/releases \
+            --paginate \
+            -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | .[0]')"
+          if [ -z "${latest}" ]; then
+            echo "Could not determine latest OpenWrt release" >&2
+            exit 1
+          fi
+          echo "Resolved latest OpenWrt release: ${latest}"
+          echo "version=${latest}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up OpenWrt SDK
+        uses: openwrt/gh-action-sdk@v4
+        with:
+          version: ${{ steps.version.outputs.version }}
+          target: ${{ github.event.inputs.target || 'mediatek' }}
+          subtarget: ${{ github.event.inputs.subtarget || 'filogic' }}
+
+      - name: Add package feed
+        run: |
+          set -eu
+          git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" package/luci-app-dnsmasq-ipset
+
+      - name: Build package
+        run: |
+          make package/luci-app-dnsmasq-ipset/compile V=s -j"$(nproc)"
+
+      - name: Collect built packages
+        run: |
+          set -eu
+          mkdir -p artifacts
+          find bin/ -type f -name 'luci-app-dnsmasq-ipset*.ipk' -exec cp -t artifacts/ {} +
+          ls -la artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-dnsmasq-ipset-${{ steps.version.outputs.version }}-${{ github.event.inputs.target || 'mediatek' }}-${{ github.event.inputs.subtarget || 'filogic' }}
+          path: artifacts/*.ipk
+          if-no-files-found: error
