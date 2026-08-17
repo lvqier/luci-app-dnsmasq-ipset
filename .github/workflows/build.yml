@@ -4,74 +4,69 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "OpenWrt SDK version (use 'latest' for the latest stable release)"
+        description: "OpenWrt release: 'latest' (latest stable), 'snapshot' (master), or a release like '24.10.8' / 'v24.10.8'"
         required: false
         default: "latest"
-      target:
-        description: "OpenWrt target (e.g. mediatek)"
+      arch:
+        description: "OpenWrt package architecture, e.g. aarch64_cortex-a53 (mediatek/filogic), x86_64"
         required: false
-        default: "mediatek"
-      subtarget:
-        description: "OpenWrt subtarget (e.g. filogic)"
-        required: false
-        default: "filogic"
+        default: "aarch64_cortex-a53"
 
 jobs:
   build:
-    name: Build (${{ github.event.inputs.target || 'mediatek' }}/${{ github.event.inputs.subtarget || 'filogic' }})
+    name: Build (${{ inputs.arch }}-${{ steps.version.outputs.release }})
     runs-on: ubuntu-latest
 
     steps:
-      - name: Determine OpenWrt SDK version
+      - name: Determine OpenWrt SDK release
         id: version
         env:
           GH_TOKEN: ${{ github.token }}
-          REQUESTED: ${{ github.event.inputs.version || 'latest' }}
+          REQUESTED: ${{ inputs.version }}
         run: |
           set -eu
-          if [ "${REQUESTED}" != "latest" ]; then
-            echo "version=${REQUESTED}" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-          # Resolve the latest stable OpenWrt release, skipping RCs / pre-releases.
-          latest="$(gh api \
-            -H "Accept: application/vnd.github+json" \
-            /repos/openwrt/openwrt/releases \
-            --paginate \
-            -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | .[0]')"
-          if [ -z "${latest}" ]; then
-            echo "Could not determine latest OpenWrt release" >&2
-            exit 1
-          fi
-          echo "Resolved latest OpenWrt release: ${latest}"
-          echo "version=${latest}" >> "${GITHUB_OUTPUT}"
+          case "${REQUESTED}" in
+            latest)
+              # Resolve the latest stable OpenWrt release, skipping RCs / pre-releases.
+              tag="$(gh api \
+                -H "Accept: application/vnd.github+json" \
+                /repos/openwrt/openwrt/releases \
+                --paginate \
+                -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | .[0]')"
+              if [ -z "${tag}" ]; then
+                echo "Could not determine latest OpenWrt release" >&2
+                exit 1
+              fi
+              echo "Resolved latest OpenWrt release: ${tag}"
+              release="${tag#v}"
+              ;;
+            snapshot|master)
+              release="master"
+              ;;
+            *)
+              release="${REQUESTED#v}"
+              ;;
+          esac
+          echo "release=${release}" >> "${GITHUB_OUTPUT}"
 
-      - name: Set up OpenWrt SDK
-        uses: openwrt/gh-action-sdk@v4
+      # Checkout the repository into a subdirectory named after the package.
+      # openwrt/gh-action-sdk mounts the workspace as a feed (src-link -> /feed)
+      # and the OpenWrt feed scanner skips a Makefile at the feed root, so the
+      # package must live one directory level deep to be discovered.
+      - name: Checkout package
+        uses: actions/checkout@v4
         with:
-          version: ${{ steps.version.outputs.version }}
-          target: ${{ github.event.inputs.target || 'mediatek' }}
-          subtarget: ${{ github.event.inputs.subtarget || 'filogic' }}
-
-      - name: Add package feed
-        run: |
-          set -eu
-          git clone --depth=1 --branch="${GITHUB_REF_NAME}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" package/luci-app-dnsmasq-ipset
+          path: luci-app-dnsmasq-ipset
 
       - name: Build package
-        run: |
-          make package/luci-app-dnsmasq-ipset/compile V=s -j"$(nproc)"
-
-      - name: Collect built packages
-        run: |
-          set -eu
-          mkdir -p artifacts
-          find bin/ -type f -name 'luci-app-dnsmasq-ipset*.ipk' -exec cp -t artifacts/ {} +
-          ls -la artifacts/
+        uses: openwrt/gh-action-sdk@v4
+        env:
+          ARCH: ${{ inputs.arch }}-${{ steps.version.outputs.release }}
+          PACKAGES: luci-app-dnsmasq-ipset
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-dnsmasq-ipset-${{ steps.version.outputs.version }}-${{ github.event.inputs.target || 'mediatek' }}-${{ github.event.inputs.subtarget || 'filogic' }}
-          path: artifacts/*.ipk
+          name: luci-app-dnsmasq-ipset-${{ steps.version.outputs.release }}-${{ inputs.arch }}
+          path: bin/**/luci-app-dnsmasq-ipset*.ipk
           if-no-files-found: error
