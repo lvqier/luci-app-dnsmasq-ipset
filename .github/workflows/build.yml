@@ -59,7 +59,7 @@ jobs:
           path: luci-app-dnsmasq-ipset
 
       - name: Build package
-        uses: openwrt/gh-action-sdk@v4
+        uses: openwrt/gh-action-sdk@v11
         env:
           ARCH: ${{ inputs.arch }}-${{ steps.version.outputs.release }}
           PACKAGES: luci-app-dnsmasq-ipset
