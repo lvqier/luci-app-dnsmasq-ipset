@@ -27,12 +27,15 @@ jobs:
           set -eu
           case "${REQUESTED}" in
             latest)
-              # Resolve the latest stable OpenWrt release, skipping RCs / pre-releases.
+              # Resolve the latest stable OpenWrt release by semantic version
+              # (the GitHub releases API orders by created_at, so a newer point
+              # release of an older series, e.g. v24.10.8 created after v25.12.5,
+              # would otherwise be picked first). Skip RCs / pre-releases.
               tag="$(gh api \
                 -H "Accept: application/vnd.github+json" \
                 /repos/openwrt/openwrt/releases \
                 --paginate \
-                -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | .[0]')"
+                -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | sort_by(ltrimstr("v") | split(".") | map(tonumber? // 0)) | last)'"
               if [ -z "${tag}" ]; then
                 echo "Could not determine latest OpenWrt release" >&2
                 exit 1
