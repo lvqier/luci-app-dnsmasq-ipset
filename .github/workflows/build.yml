@@ -35,7 +35,7 @@ jobs:
                 -H "Accept: application/vnd.github+json" \
                 /repos/openwrt/openwrt/releases \
                 --paginate \
-                -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | sort_by(ltrimstr("v") | split(".") | map(tonumber? // 0)) | last)'"
+                -q '[.[] | select(.prerelease == false and (.tag_name | test("-rc|-RC")) | not) | .tag_name] | sort_by(ltrimstr("v") | split(".") | map(tonumber? // 0)) | last')"
               if [ -z "${tag}" ]; then
                 echo "Could not determine latest OpenWrt release" >&2
                 exit 1
