@@ -64,6 +64,12 @@ jobs:
         run: |
           set -eu
           mkdir -p artifacts
+          # The SDK container runs as the non-root `buildbot` user (uid 1000),
+          # so the bind-mounted artifacts dir (owned by the runner, uid 1001,
+          # mode 755) is not writable by default — the in-container `cp ...
+          # /artifacts/` would fail with "Permission denied". Make it writable
+          # by any uid so the built package can be copied out.
+          chmod 777 artifacts
 
           # The OpenWrt SDK containers are x86_64-native (the SDK is a Linux
           # x86_64 toolchain that cross-compiles target packages), so this runs
