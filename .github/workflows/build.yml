@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: Build (${{ inputs.arch }}-${{ steps.version.outputs.release }})
+    name: Build (${{ inputs.arch }}-${{ inputs.version }})
     runs-on: ubuntu-latest
 
     steps:
