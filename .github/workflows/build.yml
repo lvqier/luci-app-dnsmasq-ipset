@@ -25,6 +25,7 @@ jobs:
       - name: Determine OpenWrt SDK version
         id: version
         env:
+          GH_TOKEN: ${{ github.token }}
           REQUESTED: ${{ github.event.inputs.version || 'latest' }}
         run: |
           set -eu
